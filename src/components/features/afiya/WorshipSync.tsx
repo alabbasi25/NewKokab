@@ -515,6 +515,17 @@ export const WorshipSync: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase opacity-40 px-2">وقت التذكير (Reminder)</label>
+                  <input 
+                    type="time" 
+                    value={newAthkar.reminderTime}
+                    onChange={e => setNewAthkar(prev => ({ ...prev, reminderTime: e.target.value }))}
+                    className="w-full h-12 bg-white/5 border border-white/10 rounded-2xl px-4 text-xs font-bold outline-none"
+                  />
+                  <p className="text-[9px] opacity-30 px-2 italic">سيتم إرسال إشعار لك في هذا الوقت</p>
+                </div>
+
                 <button type="submit" className="w-full py-5 rounded-[24px] bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white font-black text-sm shadow-xl shadow-[var(--color-primary)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                   حفظ الذكر في القائمة
                 </button>

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Dashboard } from './components/layout/Dashboard';
-import { PlanetProvider } from './context/KokabContext';
-import { Onboarding } from './components/ui/Onboarding';
-import { GlobalErrorBoundary } from './components/ui/GlobalErrorBoundary';
-import { UserID } from './types';
+import { Dashboard } from './components/Dashboard';
+import { PlanetProvider } from '../../../context/KokabContext';
+import { Onboarding } from '../../ui/Onboarding';
+import { GlobalErrorBoundary } from '../../ui/GlobalErrorBoundary';
+import { UserID } from '@/types';
 
 export default function App() {
   const [userId, setUserId] = useState<UserID>('F');

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
+import * as Icons from 'lucide-react';
 import { 
   ListTodo, 
   ArrowLeftRight, 
@@ -19,7 +20,9 @@ import {
   Briefcase,
   User,
   MoreHorizontal,
-  Sparkles
+  Sparkles,
+  Users,
+  LayoutGrid
 } from 'lucide-react';
 import { usePlanet } from '../../../context/KokabContext';
 import { UserID } from '../../../types';
@@ -45,7 +48,9 @@ export const TaskOrchestrator: React.FC = () => {
     updatePriorityConfig,
     autoAssignTask,
     getAITaskSuggestion,
-    updateTaskSettings
+    updateTaskSettings,
+    categoryIconConfigs,
+    updateCategoryIcon
   } = usePlanet();
   
   const [showAdd, setShowAdd] = useState(false);
@@ -53,6 +58,7 @@ export const TaskOrchestrator: React.FC = () => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showRoulette, setShowRoulette] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'assignee' | 'category'>('assignee');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   
   const [filterPriority, setFilterPriority] = useState<'all' | 'urgent' | 'high' | 'medium' | 'low'>('all');
@@ -176,6 +182,12 @@ export const TaskOrchestrator: React.FC = () => {
     setTimeout(() => setIsSpinning(false), 3000);
   };
 
+  const CategoryIcon = ({ category }: { category: string }) => {
+    const iconName = categoryIconConfigs[category] || 'MoreHorizontal';
+    const IconComponent = (Icons as any)[iconName] || MoreHorizontal;
+    return <IconComponent size={14} />;
+  };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pb-24">
       {/* Header */}
@@ -187,6 +199,13 @@ export const TaskOrchestrator: React.FC = () => {
           </div>
         </div>
         <div className="flex gap-2">
+          <button 
+            onClick={() => setViewMode(viewMode === 'assignee' ? 'category' : 'assignee')}
+            className="px-3 rounded-xl glass text-[var(--color-text-secondary)] flex items-center gap-2 hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] transition-all"
+          >
+            {viewMode === 'assignee' ? <Users size={16} /> : <LayoutGrid size={16} />}
+            <span className="text-[10px] font-bold">{viewMode === 'assignee' ? 'ترتيب حسب الشخص' : 'ترتيب حسب النوع'}</span>
+          </button>
           <button 
             onClick={() => setShowAnalytics(!showAnalytics)}
             className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${showAnalytics ? 'bg-[var(--color-primary)] text-white' : 'glass text-[var(--color-text-secondary)]'}`}
@@ -270,25 +289,54 @@ export const TaskOrchestrator: React.FC = () => {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="glass-card p-6 space-y-4">
-              <h4 className="text-[10px] font-black uppercase opacity-50 tracking-widest">تخصيص ألوان الأولويات</h4>
-              <div className="grid grid-cols-2 gap-4">
-                {priorityConfigs.map(config => (
-                  <div key={config.priority} className="space-y-2">
-                    <label className="text-[10px] font-bold opacity-60">
-                      {config.priority === 'urgent' ? 'عاجل' : config.priority === 'high' ? 'مهم' : config.priority === 'medium' ? 'عادي' : 'منخفض'}
-                    </label>
-                    <div className="flex gap-2">
-                      {['bg-rose-500', 'bg-amber-500', 'bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-indigo-500'].map(color => (
-                        <button
-                          key={color}
-                          onClick={() => updatePriorityConfig(config.priority, color)}
-                          className={`w-6 h-6 rounded-full ${color} border-2 ${config.color === color ? 'border-white scale-110 shadow-lg' : 'border-transparent opacity-60'}`}
-                        />
-                      ))}
+            <div className="glass-card p-6 space-y-6">
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black uppercase opacity-50 tracking-widest">تخصيص ألوان الأولويات</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {priorityConfigs.map(config => (
+                    <div key={config.priority} className="space-y-2">
+                      <label className="text-[10px] font-bold opacity-60">
+                        {config.priority === 'urgent' ? 'عاجل' : config.priority === 'high' ? 'مهم' : config.priority === 'medium' ? 'عادي' : 'منخفض'}
+                      </label>
+                      <div className="flex gap-2">
+                        {['bg-rose-500', 'bg-amber-500', 'bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-indigo-500'].map(color => (
+                          <button
+                            key={color}
+                            onClick={() => updatePriorityConfig(config.priority, color)}
+                            className={`w-6 h-6 rounded-full ${color} border-2 ${config.color === color ? 'border-white scale-110 shadow-lg' : 'border-transparent opacity-60'}`}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                <h4 className="text-[10px] font-black uppercase opacity-50 tracking-widest text-[var(--color-primary)]">أيقونات التصنيفات</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {(['home', 'work', 'personal', 'other'] as const).map(cat => (
+                    <div key={cat} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-bold opacity-60 uppercase">{cat === 'home' ? 'المنزل' : cat === 'work' ? 'العمل' : cat === 'personal' ? 'شخصي' : 'أخرى'}</label>
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[var(--color-primary)]">
+                          {React.createElement((Icons as any)[categoryIconConfigs[cat] || 'MoreHorizontal'] || MoreHorizontal, { size: 16 })}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        {['Home', 'Briefcase', 'User', 'MoreHorizontal', 'Coffee', 'ShoppingCart', 'Bicycle', 'Heart', 'Zap', 'Star'].map(iconName => (
+                          <button
+                            key={iconName}
+                            onClick={() => updateCategoryIcon(cat, iconName)}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${categoryIconConfigs[cat] === iconName ? 'bg-[var(--color-primary)] text-white' : 'glass opacity-40 hover:opacity-100'}`}
+                          >
+                            {React.createElement((Icons as any)[iconName] || MoreHorizontal, { size: 14 })}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </motion.div>
@@ -441,47 +489,91 @@ export const TaskOrchestrator: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-8">
-        {/* My Tasks */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center px-1">
-            <h3 className="text-xs font-bold uppercase tracking-widest opacity-60">مهامي</h3>
-            <span className="text-[10px] opacity-40">{myTasks.length} مهام</span>
-          </div>
-          <div className="space-y-4">
-            {myTasks.length === 0 && <p className="text-xs opacity-40 italic p-8 text-center glass-card">لا توجد مهام مطابقة...</p>}
-            {myTasks.map(task => (
-              <EnhancedTaskCard 
-                key={task.id} 
-                task={task} 
-                onComplete={() => completeTask(task.id)}
-                onDelete={() => setConfirmDelete(task.id)}
-                onDelegate={() => delegateTask(task.id, partner, 'توزيع')}
-                onRoulette={() => toggleRouletteTask(task.id)}
-                isInRoulette={rouletteTasks.includes(task.id)}
-              />
-            ))}
-          </div>
-        </div>
+        {viewMode === 'assignee' ? (
+          <>
+            {/* My Tasks */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center px-1">
+                <h3 className="text-xs font-bold uppercase tracking-widest opacity-60">مهامي</h3>
+                <span className="text-[10px] opacity-40">{myTasks.length} مهام</span>
+              </div>
+              <div className="space-y-4">
+                {myTasks.length === 0 && <p className="text-xs opacity-40 italic p-8 text-center glass-card">لا توجد مهام مطابقة...</p>}
+                {myTasks.map(task => (
+                  <EnhancedTaskCard 
+                    key={task.id} 
+                    task={task} 
+                    onComplete={() => completeTask(task.id)}
+                    onDelete={() => setConfirmDelete(task.id)}
+                    onDelegate={() => delegateTask(task.id, partner, 'توزيع')}
+                    onRoulette={() => toggleRouletteTask(task.id)}
+                    isInRoulette={rouletteTasks.includes(task.id)}
+                  />
+                ))}
+              </div>
+            </div>
 
-        {/* Partner Tasks */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center px-1">
-            <h3 className="text-xs font-bold uppercase tracking-widest opacity-60">مهام {partner === 'F' ? 'فهد' : 'بشرى'}</h3>
-            <span className="text-[10px] opacity-40">{partnerTasks.length} مهام</span>
+            {/* Partner Tasks */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center px-1">
+                <h3 className="text-xs font-bold uppercase tracking-widest opacity-60">مهام {partner === 'F' ? 'فهد' : 'بشرى'}</h3>
+                <span className="text-[10px] opacity-40">{partnerTasks.length} مهام</span>
+              </div>
+              <div className="space-y-4">
+                {partnerTasks.length === 0 && <p className="text-xs opacity-40 italic p-8 text-center glass-card">لا توجد مهام مطابقة...</p>}
+                {partnerTasks.map(task => (
+                  <EnhancedTaskCard 
+                    key={task.id} 
+                    task={task} 
+                    isPartner
+                    onRoulette={() => toggleRouletteTask(task.id)}
+                    isInRoulette={rouletteTasks.includes(task.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="space-y-12">
+            {(['home', 'work', 'personal', 'other'] as const).map(cat => {
+              const catTasks = filteredAndSortedTasks.filter(t => t.category === cat && t.status !== 'completed');
+              if (catTasks.length === 0) return null;
+              
+              return (
+                <div key={cat} className="space-y-4">
+                  <div className="flex justify-between items-center px-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)]">
+                        <CategoryIcon category={cat} />
+                      </div>
+                      <h3 className="text-xs font-black uppercase tracking-widest opacity-80">
+                        {cat === 'home' ? 'المنزل' : cat === 'work' ? 'العمل' : cat === 'personal' ? 'شخصي' : 'أخرى'}
+                      </h3>
+                    </div>
+                    <span className="text-[10px] opacity-40">{catTasks.length} مهام</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {catTasks.map(task => (
+                      <EnhancedTaskCard 
+                        key={task.id} 
+                        task={task} 
+                        isPartner={task.assignedTo !== currentUser}
+                        onComplete={() => completeTask(task.id)}
+                        onDelete={() => setConfirmDelete(task.id)}
+                        onDelegate={() => delegateTask(task.id, partner, 'توزيع')}
+                        onRoulette={() => toggleRouletteTask(task.id)}
+                        isInRoulette={rouletteTasks.includes(task.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            {filteredAndSortedTasks.filter(t => t.status !== 'completed').length === 0 && (
+              <p className="text-xs opacity-40 italic p-12 text-center glass-card">لا توجد مهام نشطة حالياً...</p>
+            )}
           </div>
-          <div className="space-y-4">
-            {partnerTasks.length === 0 && <p className="text-xs opacity-40 italic p-8 text-center glass-card">لا توجد مهام مطابقة...</p>}
-            {partnerTasks.map(task => (
-              <EnhancedTaskCard 
-                key={task.id} 
-                task={task} 
-                isPartner
-                onRoulette={() => toggleRouletteTask(task.id)}
-                isInRoulette={rouletteTasks.includes(task.id)}
-              />
-            ))}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Modals */}
@@ -530,7 +622,7 @@ const EnhancedTaskCard: React.FC<{
   isInRoulette: boolean;
   isPartner?: boolean;
 }> = ({ task, onComplete, onDelete, onDelegate, onRoulette, isInRoulette, isPartner }) => {
-  const { priorityConfigs, getAITaskSuggestion } = usePlanet();
+  const { priorityConfigs, getAITaskSuggestion, categoryIconConfigs } = usePlanet();
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
 
@@ -540,6 +632,12 @@ const EnhancedTaskCard: React.FC<{
 
   const isOverdue = task.dueDate && task.dueDate < Date.now() && task.status !== 'completed';
   const priorityColor = priorityConfigs.find(c => c.priority === task.priority)?.color || 'bg-blue-500';
+  
+  const CategoryIcon = ({ category }: { category: string }) => {
+    const iconName = categoryIconConfigs[category] || 'MoreHorizontal';
+    const IconComponent = (Icons as any)[iconName] || MoreHorizontal;
+    return <IconComponent size={14} />;
+  };
 
   const handleAiSuggestion = async () => {
     if (aiSuggestion) {
@@ -560,15 +658,6 @@ const EnhancedTaskCard: React.FC<{
   const handleDragEnd = (_: any, info: any) => {
     if (!isPartner && onComplete && info.offset.x > 100) {
       onComplete();
-    }
-  };
-
-  const CategoryIcon = ({ category }: { category: string }) => {
-    switch (category) {
-      case 'home': return <Home size={14} />;
-      case 'work': return <Briefcase size={14} />;
-      case 'personal': return <User size={14} />;
-      default: return <MoreHorizontal size={14} />;
     }
   };
 

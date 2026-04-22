@@ -20,7 +20,9 @@ import {
   Clock,
   History as HistoryIcon,
   Filter,
-  AlertCircle
+  AlertCircle,
+  Users,
+  Sparkles
 } from 'lucide-react';
 import { usePlanet } from '../../../context/KokabContext';
 import { Challenge, UserID } from '../../../types';
@@ -36,7 +38,8 @@ export const Arena: React.FC = () => {
     streaks, 
     fitnessBattle, 
     updateFitnessBattle,
-    profiles
+    profiles,
+    updateChallengeProgress
   } = usePlanet();
   
   const [showAdd, setShowAdd] = useState(false);
@@ -324,6 +327,44 @@ export const Arena: React.FC = () => {
                       transition={{ ease: "linear" }}
                       className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
                     />
+                  </div>
+
+                  {/* Participant Progress Tracker */}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex justify-between items-center px-1">
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-40">تقدم المشاركين</span>
+                      <Users size={12} className="opacity-40" />
+                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      {c.participants.map(pid => (
+                        <div key={pid} className="space-y-1.5 p-3 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 rounded-full overflow-hidden border border-white/10">
+                                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profiles[pid].name}`} alt="" />
+                              </div>
+                              <span className="text-[10px] font-bold">{profiles[pid].name}</span>
+                            </div>
+                            <span className="text-[10px] font-black tabular-nums">%{c.participantProgress?.[pid] || 0}</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden relative">
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: `${c.participantProgress?.[pid] || 0}%` }}
+                              className={`h-full ${pid === 'F' ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                            />
+                            {pid === currentUser && c.status === 'active' && (
+                              <input 
+                                type="range" min="0" max="100" 
+                                value={c.participantProgress?.[pid] || 0}
+                                onChange={(e) => updateChallengeProgress(c.id, pid, parseInt(e.target.value))}
+                                className="absolute inset-0 opacity-0 cursor-pointer"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   
                   <div className="flex gap-2 pt-2">

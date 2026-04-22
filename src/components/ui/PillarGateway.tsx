@@ -31,7 +31,7 @@ export const PillarGateway: React.FC<PillarGatewayProps> = ({ label, count, icon
       
       <div className="flex justify-between items-start w-full relative z-10">
         <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center text-white shadow-xl group-hover:rotate-6 transition-transform duration-500`}>
-          {React.cloneElement(icon as React.ReactElement, { size: 28 })}
+          {React.cloneElement(icon as React.ReactElement<any>, { size: 28 })}
         </div>
         <div className="flex flex-col items-end">
           <span className="text-2xl font-black">{count}%</span>

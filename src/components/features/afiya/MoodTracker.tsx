@@ -317,7 +317,7 @@ export const MoodTracker: React.FC = () => {
                   <div key={entry.id} className="glass-card p-4 flex items-center justify-between group">
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-xl ${moodInfo?.color}/10 ${moodInfo?.text} flex items-center justify-center transition-transform group-hover:scale-110`}>
-                        {moodInfo?.icon && React.cloneElement(moodInfo.icon as React.ReactElement, { size: 18 })}
+                        {moodInfo?.icon && React.cloneElement(moodInfo.icon as React.ReactElement<any>, { size: 18 })}
                       </div>
                       <div>
                         <div className="text-sm font-black">{moodInfo?.label}</div>
@@ -369,7 +369,7 @@ export const MoodTracker: React.FC = () => {
                   >
                     <div className="flex items-center gap-5">
                       <div className={`w-14 h-14 rounded-2xl ${moodInfo?.color}/10 ${moodInfo?.text} flex items-center justify-center shadow-inner`}>
-                        {moodInfo?.icon && React.cloneElement(moodInfo.icon as React.ReactElement, { size: 28 })}
+                        {moodInfo?.icon && React.cloneElement(moodInfo.icon as React.ReactElement<any>, { size: 28 })}
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">

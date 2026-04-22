@@ -22,6 +22,7 @@ interface NizamContextType {
   budget: Budget | null;
   challenges: Challenge[];
   rouletteTasks: string[];
+  categoryIconConfigs: Record<string, string>; // category -> icon name
   
   // Actions
   addTask: (task: Partial<Task>) => void;
@@ -31,6 +32,8 @@ interface NizamContextType {
   addTransaction: (t: Partial<Transaction>) => void;
   requestConsensus: (type: ConsensusRequest['type'], data: any) => void;
   resolveConsensus: (id: string, approved: boolean) => void;
+  updateChallengeProgress: (id: string, userId: UserID, progress: number) => void;
+  updateCategoryIcon: (category: string, icon: string) => void;
 }
 
 const NizamContext = createContext<NizamContextType | undefined>(undefined);
@@ -51,6 +54,12 @@ export const NizamProvider: React.FC<{ children: React.ReactNode; userId: UserID
   const [budget, setBudget] = useState<Budget | null>(null);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [rouletteTasks, setRouletteTasks] = useState<string[]>([]);
+  const [categoryIconConfigs, setCategoryIconConfigs] = useState<Record<string, string>>({
+    home: 'Home',
+    work: 'Briefcase',
+    personal: 'User',
+    other: 'MoreHorizontal'
+  });
 
   // Batch sync to server
   useEffect(() => {
@@ -72,6 +81,7 @@ export const NizamProvider: React.FC<{ children: React.ReactNode; userId: UserID
         if (data.budget) setBudget(data.budget);
         if (data.challenges) setChallenges(data.challenges);
         if (data.rouletteTasks) setRouletteTasks(data.rouletteTasks);
+        if (data.categoryIconConfigs) setCategoryIconConfigs(data.categoryIconConfigs as any);
       } catch (err) {
         console.error("Nizam sync failed", err);
       }
@@ -88,6 +98,7 @@ export const NizamProvider: React.FC<{ children: React.ReactNode; userId: UserID
       priority: task.priority || 'medium',
       category: task.category || 'home',
       estimatedMinutes: task.estimatedMinutes || 30,
+      privacy: task.privacy || 'shared',
       createdAt: Date.now(),
       ...task
     };
@@ -108,7 +119,7 @@ export const NizamProvider: React.FC<{ children: React.ReactNode; userId: UserID
   };
 
   const updateInventory = (id: string, newStock: number) => {
-    const updated = inventory.map(item => item.id === id ? { ...item, currentStock: newStock, status: newStock <= item.minStock ? 'low' : 'ok' } : item);
+    const updated = inventory.map(item => item.id === id ? { ...item, currentStock: newStock, status: (newStock <= item.minStock ? 'low' : 'ok') as any } : item);
     setInventory(updated);
     kokabApi.updateState({ inventory: updated });
   };
@@ -117,13 +128,15 @@ export const NizamProvider: React.FC<{ children: React.ReactNode; userId: UserID
     const newT: Transaction = {
       id: Math.random().toString(36).substr(2, 9),
       amount: t.amount || 0,
-      type: t.type || 'variable',
+      type: t.type || 'expense',
       category: t.category || 'misc',
       description: t.description || '',
       timestamp: Date.now(),
       status: 'pending',
+      privacy: 'shared',
+      userId: userId,
       ...t
-    };
+    } as Transaction;
     setTransactions(prev => [...prev, newT]);
     kokabApi.updateState({ transactions: [...transactions, newT] });
   };
@@ -147,11 +160,27 @@ export const NizamProvider: React.FC<{ children: React.ReactNode; userId: UserID
     kokabApi.updateState({ consensusRequests: updated });
   };
 
+  const updateChallengeProgress = (id: string, userId: UserID, progress: number) => {
+    const updated = challenges.map(c => c.id === id ? { 
+      ...c, 
+      participantProgress: { ...(c.participantProgress || {}), [userId]: progress } 
+    } : c);
+    setChallenges(updated);
+    kokabApi.updateState({ challenges: updated });
+  };
+
+  const updateCategoryIcon = (category: string, icon: string) => {
+    const updated = { ...categoryIconConfigs, [category]: icon };
+    setCategoryIconConfigs(updated);
+    kokabApi.updateState({ categoryIconConfigs: updated });
+  };
+
   return (
     <NizamContext.Provider value={{
       tasks, inventory, calendar, transactions, liabilities, assets, vault, permissions, consensusRequests,
-      arbitrationRequests, deadManSwitch, fitnessBattle, budget, challenges, rouletteTasks,
-      addTask, updateTask, deleteTask, updateInventory, addTransaction, requestConsensus, resolveConsensus
+      arbitrationRequests, deadManSwitch, fitnessBattle, budget, challenges, rouletteTasks, categoryIconConfigs,
+      addTask, updateTask, deleteTask, updateInventory, addTransaction, requestConsensus, resolveConsensus,
+      updateChallengeProgress, updateCategoryIcon
     }}>
       {children}
     </NizamContext.Provider>

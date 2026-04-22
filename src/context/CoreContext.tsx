@@ -29,13 +29,20 @@ interface CoreContextType {
 const CoreContext = createContext<CoreContextType | undefined>(undefined);
 
 export const CoreProvider: React.FC<{ children: React.ReactNode; currentUserId: UserID }> = ({ children, currentUserId }) => {
-  const [theme, setThemeState] = useState<string>(localStorage.getItem('kokab-theme') || 'midnight');
+  const [theme, setThemeState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('kokab-theme') || 'midnight';
+    }
+    return 'midnight';
+  });
   const [barakahPoints, setBarakahPoints] = useState(2500);
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [profiles, setProfiles] = useState<Record<UserID, UserProfile>>({
     F: { userId: 'F', name: 'فهد', joinedAt: Date.now() - 31536000000, delegatedSpendingCeiling: 1000, notificationSettings: { tasks: true, updates: true, athkar: true, financial: true, social: true }, taskSettings: { showDailyFilter: true } },
-    B: { userId: 'B', name: 'بشرى', joinedAt: Date.now() - 31536000000, delegatedSpendingCeiling: 1000, notificationSettings: { tasks: true, updates: true, athkar: true, financial: true, social: true }, taskSettings: { showDailyFilter: true } }
+    B: { userId: 'B', name: 'بشرى', joinedAt: Date.now() - 31536000000, delegatedSpendingCeiling: 1000, notificationSettings: { tasks: true, updates: true, athkar: true, financial: true, social: true }, taskSettings: { showDailyFilter: true } },
+    user_test_1: { userId: 'user_test_1', name: 'تجريبي 1', joinedAt: Date.now(), delegatedSpendingCeiling: 500, notificationSettings: { tasks: true, updates: true, athkar: true, financial: true, social: true }, taskSettings: { showDailyFilter: true } },
+    partner_test_1: { userId: 'partner_test_1', name: 'تجريبي 2', joinedAt: Date.now(), delegatedSpendingCeiling: 500, notificationSettings: { tasks: true, updates: true, athkar: true, financial: true, social: true }, taskSettings: { showDailyFilter: true } }
   });
   const [travel, setTravel] = useState<TravelPlan[]>([]);
   const [family, setFamily] = useState<FutureFamily | null>(null);

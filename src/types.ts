@@ -1,4 +1,4 @@
-export type UserID = 'F' | 'B'; // F: Fahad, B: Bushra
+export type UserID = 'F' | 'B' | 'user_test_1' | 'partner_test_1'; // F: Fahad, B: Bushra, Tests: mockup IDs
 
 export interface UserStatus {
   userId: UserID;
@@ -33,6 +33,7 @@ export interface Task {
   priority: 'low' | 'medium' | 'high' | 'urgent';
   category: 'home' | 'work' | 'personal' | 'other';
   estimatedMinutes: number;
+  privacy: 'private' | 'visible' | 'shared';
   createdAt: number;
   dueDate?: number;
   delegation?: {
@@ -77,12 +78,14 @@ export interface KanbanItem extends InventoryItem {
 export interface Transaction {
   id: string;
   amount: number;
-  type: 'fixed' | 'variable';
+  type: 'expense' | 'income' | 'savings';
   category: string;
   description: string;
   timestamp: number;
   status: 'confirmed' | 'pending';
   requiresConsensus?: boolean;
+  privacy: 'private' | 'visible' | 'shared';
+  userId: UserID;
 }
 
 export interface AssetGoal {
@@ -92,7 +95,9 @@ export interface AssetGoal {
   current: number;
   requiresDualAuth: boolean;
   isLocked: boolean;
-  unlockRequests: UserID[]; // Both must be present to unlock
+  unlockRequests: UserID[];
+  privacy: 'private' | 'visible' | 'shared';
+  userId: UserID;
   withdrawRequests?: {
     amount: number;
     requestedBy: UserID;
@@ -235,6 +240,17 @@ export interface UserProfile {
   delegatedSpendingCeiling: number; // Max amount without partner approval
   notificationSettings: NotificationSettings;
   taskSettings: TaskSettings;
+}
+
+export interface Partnership {
+  id: string;
+  partnerIds: UserID[];
+  anniversary?: number;
+  status: 'active' | 'pending' | 'broken';
+  settings: {
+    sharedBudget: boolean;
+    sharedTasks: boolean;
+  };
 }
 
 export interface Streak {
@@ -388,6 +404,7 @@ export interface KokabState {
   profiles: Record<UserID, UserProfile>;
   streaks: Record<UserID, Streak>;
   rouletteTasks: string[]; // IDs of tasks in the roulette
+  categoryIconConfigs: Record<string, string>;
   hobbyProjects: HobbyProject[];
   loveLanguages: LoveLanguageResult[];
   coinStaking: CoinStaking;
@@ -437,6 +454,7 @@ export interface Challenge {
   winner?: UserID;
   conditions?: string;
   participants: UserID[];
+  participantProgress?: Partial<Record<UserID, number>>; // value between 0 and 100
 }
 
 export interface RomancePrompt {

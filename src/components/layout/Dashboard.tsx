@@ -46,6 +46,7 @@ import { useAI } from '../../hooks/useAI';
 import { KokabCard } from '../ui/KokabCard';
 import { KokabButton } from '../ui/KokabButton';
 import { KokabBadge } from '../ui/KokabBadge';
+import { KokabDynamicCard } from '../ui/KokabDynamicCard';
 import { PillarGateway } from '../ui/PillarGateway';
 import { SystemDashboard } from '../features/nizam/SystemDashboard';
 import { InventoryManager } from '../features/nizam/InventoryManager';
@@ -54,7 +55,7 @@ import { WorshipSync } from '../features/afiya/WorshipSync';
 import { VitalSignsLog } from '../features/afiya/VitalSignsLog';
 import { SecureVault } from '../features/nizam/SecureVault';
 import { TravelPlanner } from '../features/vision/TravelPlanner';
-import { FutureFund } from '../features/vision/FutureFund';
+import { FutureFund } from '../features/nizam/FutureFund';
 import { TaskOrchestrator } from '../features/nizam/TaskOrchestrator';
 import { GlobalSchedule } from '../features/nizam/GlobalSchedule';
 import { PrivateSanctum } from '../features/mawadda/PrivateSanctum';
@@ -660,7 +661,68 @@ const HomeView: React.FC<{ setActiveTab: (tab: ViewID) => void }> = ({ setActive
         <PlanetWeather />
       </div>
 
-      {/* Quick Visual Summary - Interactive Chart */}
+      {/* Dynamic Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <KokabDynamicCard 
+          title="نظام التناغم الموحد"
+          subtitle="تحليل حالة الكوكب والربط الذكي للجداول"
+          icon={<Zap size={24} />}
+          accentColor="var(--color-primary)"
+          sections={[
+            {
+              title: "برج المنظومة",
+              items: [
+                { label: "كفاءة المهام", value: `${Math.round(taskProgress)}%`, status: taskProgress > 70 ? 'success' : 'warning' },
+                { label: "استقرار المخزون", value: `${Math.round(inventoryHealth)}%`, status: inventoryHealth > 80 ? 'success' : 'danger' },
+                { label: "تحقق السيادة", value: "مضمون", status: 'info' }
+              ]
+            },
+            {
+              title: "برج العافية",
+              items: [
+                { label: "صلاة الجماعة", value: "٣/٥", status: 'warning' },
+                { label: "متوسط النوم", value: "٧.٥ س", status: 'success' },
+                { label: "نقاط البركة", value: barakahPoints }
+              ]
+            }
+          ]}
+          primaryAction={{
+            label: "عرض التقارير التفصيلية",
+            onClick: () => setActiveTab('system')
+          }}
+        />
+
+        <KokabDynamicCard 
+          title="غلاف المشاعر والارتباط"
+          subtitle="رصد نبض العلاقة والتفاعل اللحظي"
+          icon={<Heart size={24} />}
+          accentColor="var(--color-accent)"
+          sections={[
+            {
+              title: "المؤشرات العاطفية",
+              items: [
+                { label: "مستوى الوفاق", value: "مرتفع", status: 'success' },
+                { label: "لغة المحبة", value: "الهدايا", status: 'info' },
+                { label: "قوة الاتصال", value: "٩٢٪", status: 'success' }
+              ]
+            },
+            {
+              title: "التفاعل الأخير",
+              items: [
+                { label: "سجل الامتنان", value: "١٢ مدخل", status: 'success' },
+                { label: "رسائل معلقة", value: unreadMessagesCount, status: unreadMessagesCount > 0 ? 'warning' : 'success' },
+                { label: "موعدنا القادم", value: "غداً ١٠م", status: 'info' }
+              ]
+            }
+          ]}
+          primaryAction={{
+            label: "اكتشاف صالون الرومانسية",
+            onClick: () => setActiveTab('romance')
+          }}
+        />
+      </div>
+
+      {/* Stability Chart Mini-version */}
       <KokabCard variant="glass" padding="none" className="overflow-hidden border-emerald-500/10">
         <div className="p-6 border-b border-white/5 flex justify-between items-center">
           <div>
@@ -922,7 +984,7 @@ const PillarCard: React.FC<{ label: string; value: number; color: 'blue' | 'emer
   return (
     <div className="glass-card p-5 space-y-4 relative overflow-hidden group">
       <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-        {React.cloneElement(icon as React.ReactElement, { size: 64 })}
+        {React.cloneElement(icon as React.ReactElement<any>, { size: 64 })}
       </div>
       <div className="flex justify-between items-start relative z-10">
         <div className={`p-2 rounded-lg ${colorMap[color].split(' ')[0]}/10 ${colorMap[color].split(' ')[1]}`}>

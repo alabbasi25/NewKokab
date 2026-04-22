@@ -24,7 +24,8 @@ interface AfiyaContextType {
   addHabit: (habit: Partial<Habit>) => void;
   updateHabit: (id: string, progress: number) => void;
   addMoodLog: (mood: MoodEntry['mood'], note?: string) => void;
-  incrementAthkar: (id: string) => void;
+  incrementAthkarCount: (id: string) => void;
+  addAthkar: (item: Partial<AthkarItem>) => void;
   updateVitals: (data: Partial<VitalSigns>) => void;
 }
 
@@ -33,20 +34,26 @@ const AfiyaContext = createContext<AfiyaContextType | undefined>(undefined);
 export const AfiyaProvider: React.FC<{ children: React.ReactNode; userId: UserID }> = ({ children, userId }) => {
   const [vitals, setVitals] = useState<Record<UserID, VitalSigns>>({
     F: { userId: 'F', weight: 80, sleepQuality: 80, steps: 0, calories: 0, googleFitConnected: false, lastSync: 0 },
-    B: { userId: 'B', weight: 60, sleepQuality: 80, steps: 0, calories: 0, googleFitConnected: false, lastSync: 0 }
+    B: { userId: 'B', weight: 60, sleepQuality: 80, steps: 0, calories: 0, googleFitConnected: false, lastSync: 0 },
+    user_test_1: { userId: 'user_test_1', weight: 75, sleepQuality: 85, steps: 0, calories: 0, googleFitConnected: false, lastSync: 0 },
+    partner_test_1: { userId: 'partner_test_1', weight: 65, sleepQuality: 85, steps: 0, calories: 0, googleFitConnected: false, lastSync: 0 }
   });
-  const [habits, setHabits] = useState<Record<UserID, Habit[]>>({ F: [], B: [] });
+  const [habits, setHabits] = useState<Record<UserID, Habit[]>>({ F: [], B: [], user_test_1: [], partner_test_1: [] });
   const [worship, setWorship] = useState<WorshipSession[]>([]);
   const [athkar, setAthkar] = useState<AthkarItem[]>([]);
   const [moodLogs, setMoodLogs] = useState<MoodEntry[]>([]);
   const [weather, setWeather] = useState<PlanetWeather>({ status: 'sunny', reason: 'Fresh start', suggestion: 'Enjoy!', timestamp: Date.now() });
   const [streaks, setStreaks] = useState<Record<UserID, Streak>>({
     F: { userId: 'F', count: 0, lastCompletedAt: Date.now() },
-    B: { userId: 'B', count: 0, lastCompletedAt: Date.now() }
+    B: { userId: 'B', count: 0, lastCompletedAt: Date.now() },
+    user_test_1: { userId: 'user_test_1', count: 0, lastCompletedAt: Date.now() },
+    partner_test_1: { userId: 'partner_test_1', count: 0, lastCompletedAt: Date.now() }
   });
   const [focusStates, setFocusStates] = useState<Record<UserID, FocusState>>({
     F: { userId: 'F', isActive: false, startTime: Date.now() },
-    B: { userId: 'B', isActive: false, startTime: Date.now() }
+    B: { userId: 'B', isActive: false, startTime: Date.now() },
+    user_test_1: { userId: 'user_test_1', isActive: false, startTime: Date.now() },
+    partner_test_1: { userId: 'partner_test_1', isActive: false, startTime: Date.now() }
   });
   const [hydrationLogs, setHydrationLogs] = useState<HydrationLog[]>([]);
   const [library, setLibrary] = useState<Book[]>([]);
@@ -114,11 +121,29 @@ export const AfiyaProvider: React.FC<{ children: React.ReactNode; userId: UserID
     kokabApi.updateState({ moodLogs: [entry, ...moodLogs] });
   };
 
-  const incrementAthkar = (id: string) => {
+  const incrementAthkarCount = (id: string) => {
     const updated = athkar.map(a => a.id === id ? { 
       ...a, 
-      count: { ...a.count, [userId]: a.count[userId] + 1 } 
+      count: { ...a.count, [userId]: (a.count[userId] || 0) + 1 } 
     } : a);
+    setAthkar(updated);
+    kokabApi.updateState({ athkar: updated });
+  };
+
+  const addAthkar = (item: Partial<AthkarItem>) => {
+    const newItem: AthkarItem = {
+      id: Math.random().toString(36).substr(2, 9),
+      text: item.text || '',
+      category: item.category || 'custom',
+      target: item.target || 33,
+      count: { F: 0, B: 0, user_test_1: 0, partner_test_1: 0 },
+      isDaily: item.isDaily ?? true,
+      notificationTime: item.notificationTime,
+      startTime: item.startTime,
+      endTime: item.endTime,
+      ...item
+    };
+    const updated = [...athkar, newItem];
     setAthkar(updated);
     kokabApi.updateState({ athkar: updated });
   };
@@ -132,7 +157,7 @@ export const AfiyaProvider: React.FC<{ children: React.ReactNode; userId: UserID
   return (
     <AfiyaContext.Provider value={{
       vitals, habits, worship, athkar, moodLogs, weather, streaks, focusStates, hydrationLogs, library, quranTracker, moodConfigs, priorityConfigs,
-      addHabit, updateHabit, addMoodLog, incrementAthkar, updateVitals
+      addHabit, updateHabit, addMoodLog, incrementAthkarCount, addAthkar, updateVitals
     }}>
       {children}
     </AfiyaContext.Provider>

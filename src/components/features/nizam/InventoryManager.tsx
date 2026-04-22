@@ -158,7 +158,7 @@ export const InventoryManager: React.FC = () => {
                       onChange={e => setFilterCategory(e.target.value)}
                       className="w-full bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl px-4 py-3 text-xs outline-none text-[var(--color-text-primary)] appearance-none"
                     >
-                      {categories.map(c => <option key={c} value={c} className="text-black">{c === 'all' ? 'كل الفئات' : c}</option>)}
+                      {(categories as string[]).map(c => <option key={c} value={c} className="text-black">{c === 'all' ? 'كل الفئات' : c}</option>)}
                     </select>
                     <ChevronDown size={14} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
                   </div>

@@ -628,7 +628,6 @@ export const ChatScreen: React.FC = () => {
 
           {/* Action Button: Mic or Send */}
           <motion.button 
-            as={motion.button}
             whileTap={{ scale: 0.9 }}
             onClick={() => {
               if (inputText.trim() || editingMessage || audioPreview) handleSend();

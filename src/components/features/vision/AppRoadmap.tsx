@@ -149,7 +149,7 @@ export const AppRoadmap: React.FC = () => {
                 <div className="flex gap-2 pt-2">
                    <KokabBadge 
                      label={item.pillar === 'mawadda' ? 'ركن المودة' : item.pillar === 'nizam' ? 'ركن المنظومة' : item.pillar === 'afiya' ? 'ركن العافية' : 'ركن الرؤية'} 
-                     variant="ghost" 
+                     variant="secondary" 
                      className="text-[9px] px-2 py-0.5 border border-white/5" 
                    />
                 </div>

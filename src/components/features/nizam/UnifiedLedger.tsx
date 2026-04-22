@@ -30,6 +30,7 @@ import { usePlanet } from '../../../context/KokabContext';
 import { ModernInput } from '../../ui/ModernInput';
 import { KokabButton } from '../../ui/KokabButton';
 import { Transaction, Liability, AssetGoal, Budget } from '../../../types';
+import { UnifiedLedgerCalendar } from './UnifiedLedgerCalendar';
 
 export const UnifiedLedger: React.FC = () => {
   const { 
@@ -54,7 +55,7 @@ export const UnifiedLedger: React.FC = () => {
   const ceiling = userProfile?.delegatedSpendingCeiling || 0;
 
   // State for filters
-  const [filterType, setFilterType] = useState<'all' | 'fixed' | 'variable'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'expense' | 'income' | 'savings'>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
   const [showFilters, setShowFilters] = useState(false);
@@ -65,12 +66,27 @@ export const UnifiedLedger: React.FC = () => {
   const [showAddLiability, setShowAddLiability] = useState(false);
   const [showAddGoal, setShowAddGoal] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'summary' | 'transactions' | 'liabilities' | 'goals'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'transactions' | 'liabilities' | 'goals' | 'calendar'>('summary');
 
   // Form states
-  const [newTransaction, setNewTransaction] = useState<Partial<Transaction>>({ amount: 0, type: 'variable', category: '', description: '' });
+  const [newTransaction, setNewTransaction] = useState<Partial<Transaction>>({ 
+    amount: 0, 
+    type: 'expense', 
+    category: '', 
+    description: '',
+    privacy: 'shared',
+    userId: currentUser
+  });
   const [newLiabilityForm, setNewLiabilityForm] = useState<Partial<Liability>>({ name: '', totalAmount: 0, monthlyInstallment: 0 });
-  const [newGoalForm, setNewGoalForm] = useState<Partial<AssetGoal>>({ name: '', target: 0, current: 0, requiresDualAuth: false });
+  const [newGoalForm, setNewGoalForm] = useState<Partial<AssetGoal>>({ 
+    name: '', 
+    target: 0, 
+    current: 0, 
+    requiresDualAuth: false,
+    privacy: 'shared',
+    userId: currentUser,
+    unlockRequests: []
+  });
   const [editBudget, setEditBudget] = useState<Partial<Budget>>(budget);
 
   const categories = useMemo(() => ['all', ...new Set(transactions.map(t => t.category))], [transactions]);
@@ -127,7 +143,14 @@ export const UnifiedLedger: React.FC = () => {
     }
     
     setShowAddTransaction(false);
-    setNewTransaction({ amount: 0, type: 'variable', category: '', description: '' });
+    setNewTransaction({ 
+      amount: 0, 
+      type: 'expense', 
+      category: '', 
+      description: '', 
+      privacy: 'shared', 
+      userId: currentUser 
+    });
   };
 
   const handleUpdateBudget = (e: React.FormEvent) => {
@@ -162,7 +185,7 @@ export const UnifiedLedger: React.FC = () => {
           
           {/* Tab Switcher */}
           <div className="flex p-1 bg-white/5 rounded-2xl md:w-auto overflow-x-auto no-scrollbar">
-            {(['summary', 'transactions', 'liabilities', 'goals'] as const).map(tab => (
+            {(['summary', 'calendar', 'transactions', 'liabilities', 'goals'] as const).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -170,7 +193,7 @@ export const UnifiedLedger: React.FC = () => {
                   activeTab === tab ? 'bg-[var(--color-primary)] text-white shadow-lg' : 'opacity-40 hover:opacity-100'
                 }`}
               >
-                {tab === 'summary' ? 'الملخص' : tab === 'transactions' ? 'المصاريف' : tab === 'liabilities' ? 'الالتزامات' : 'الأهداف'}
+                {tab === 'summary' ? 'الملخص' : tab === 'calendar' ? 'التقويم' : tab === 'transactions' ? 'المصاريف' : tab === 'liabilities' ? 'الالتزامات' : 'الأهداف'}
               </button>
             ))}
           </div>
@@ -283,6 +306,17 @@ export const UnifiedLedger: React.FC = () => {
           </motion.div>
         )}
 
+        {activeTab === 'calendar' && (
+          <motion.div
+            key="calendar"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+          >
+            <UnifiedLedgerCalendar transactions={transactions} liabilities={liabilities} />
+          </motion.div>
+        )}
+
         {activeTab === 'transactions' && (
           <motion.div
             key="transactions"
@@ -305,7 +339,7 @@ export const UnifiedLedger: React.FC = () => {
                       <option value="variable">متغير</option>
                     </select>
                     <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none">
-                      {categories.map(c => <option key={c} value={c}>{c === 'all' ? 'كل الفئات' : c}</option>)}
+                      {categories.map(c => <option key={c as string} value={c as string}>{c === 'all' ? 'كل الفئات' : c as string}</option>)}
                     </select>
                   </div>
                 </motion.div>
